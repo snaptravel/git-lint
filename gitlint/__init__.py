@@ -14,29 +14,33 @@
 """
 git-lint: improving source code one step at a time
 
-Lints all the modified files in your git repository showing only the modified
-lines.
+Lints modified lines in your git repository branch.
 
 It supports many filetypes, including:
     PHP, Python, Javascript, Ruby, CSS, SCSS, PNG, JPEG, RST, YAML, INI, Java,
     among others. See https://github.com/sk-/git-lint for the complete list.
 
 Usage:
-    git-lint [-f | --force] [--json] [--last-commit] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--no-cache] [--merge-base]
+    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [FILENAME ...]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache]
     git-lint -h | --version
 
 Options:
     -h             Show the usage patterns.
     --version      Prints the version number.
     -f --force     Shows all the lines with problems.
-    -t --tracked   Lints only tracked files.
+    -t --tracked   Lints only tracked files in the index.
     --json         Prints the result as a json string. Useful to use it in
                    conjunction with other tools.
-    --last-commit  Checks modifications since just prior to the last commit.
-    --merge-base   Checks modifications since the merge-base commit of this branch
-                   with master. Ignored if --last-commit is set. Not supported for 
-                   Mercurial vcs.
+    --mode=MODE    [merge-base, local, last-commit] Default is merge-base.
+ 
+                   merge-base: Checks modifications since the merge-base commit
+                   of this branch with master. Not supported for Mercurial vcs.
+                  
+                   local: Checks local modifications (those that have not yet been
+                   committed).
+                  
+                   last-comit: Checks modifications since just prior to the last commit.
     --no-cache     If set, do not make use of the lint results cache.
 """
 
@@ -210,10 +214,13 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
         return 128
 
     commit = None
-    if arguments['--last-commit']:
-        commit = vcs.last_commit()
-    elif arguments['--merge-base']:
+    mode = arguments['--mode']
+    if not mode or mode == 'merge-base':
         commit = vcs.merge_base_commit()
+    elif mode == 'last-commit':
+        commit = vcs.last_commit()
+    elif mode != 'local':
+        raise ValueError('Invalid mode. Valid modes are: merge-base, local, or last-commit.')
 
     if arguments['FILENAME']:
         invalid_filenames = find_invalid_filenames(arguments['FILENAME'],
