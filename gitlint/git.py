@@ -42,6 +42,16 @@ def last_commit():
         return None
 
 
+def merge_base_commit():
+    """Returns the SHA1 of the merge-base of this branch with master."""
+    try:
+        root = subprocess.check_output(
+            ['git', 'merge-base', 'HEAD', 'master'], stderr=subprocess.STDOUT).strip()
+        # Convert to unicode first
+        return root.decode('utf-8')
+    except subprocess.CalledProcessError:
+        return None
+
 def _remove_filename_quotes(filename):
     """Removes the quotes from a filename returned by git status."""
     if filename.startswith('"') and filename.endswith('"'):
@@ -51,7 +61,7 @@ def _remove_filename_quotes(filename):
 
 
 def modified_files(root, tracked_only=False, commit=None):
-    """Returns a list of files that has been modified since the last commit.
+    """Returns a list of files that has been modified since the given commit.
 
     Args:
       root: the root of the repository, it has to be an absolute path.
@@ -66,7 +76,9 @@ def modified_files(root, tracked_only=False, commit=None):
     assert os.path.isabs(root), "Root has to be absolute, got: %s" % root
 
     if commit:
-        return _modified_files_with_commit(root, commit)
+        modified_file_to_mode = _modified_files_from_prior_commits(root, commit)
+    else:
+        modified_file_to_mode = {}
 
     # Convert to unicode and split
     status_lines = subprocess.check_output([
@@ -84,16 +96,22 @@ def modified_files(root, tracked_only=False, commit=None):
         r'(?P<mode>%s) (?P<filename>.+)' % modes_str,
         groups=('filename', 'mode'))
 
-    return dict((os.path.join(root, _remove_filename_quotes(filename)), mode)
-                for filename, mode in modified_file_status)
+    modified_file_to_mode.update(
+        dict((os.path.join(root, _remove_filename_quotes(filename)), mode)
+                for filename, mode in modified_file_status))
+
+    return modified_file_to_mode
 
 
-def _modified_files_with_commit(root, commit):
+def _modified_files_from_prior_commits(root, commit):
+    last = last_commit()
+    cmds = ['git', 'diff-tree', '-r', '--root', '--no-commit-id', '--name-status']
+    if last != commit:
+       cmds.append(commit)
+    cmds.append(last)
+
     # Convert to unicode and split
-    status_lines = subprocess.check_output([
-        'git', 'diff-tree', '-r', '--root', '--no-commit-id', '--name-status',
-        commit
-    ]).decode('utf-8').split(os.linesep)
+    status_lines = subprocess.check_output(cmds).decode('utf-8').split(os.linesep)
 
     modified_file_status = utils.filter_lines(
         status_lines,
@@ -126,15 +144,22 @@ def modified_lines(filename, extra_data, commit=None):
     if extra_data not in ('M ', ' M', 'MM'):
         return None
 
+    commits = []
     if commit is None:
-        commit = '0' * 40
-    commit = commit.encode('utf-8')
+        commits.append('0' * 40)
+    elif commit != last_commit():
+        commits = subprocess.check_output(
+            ['git', 'rev-list', '%s...HEAD' % commit]).strip().split(os.linesep.encode('utf-8'))
+    else:
+        commits.append(commit)
+    
+    commits = [commit.encode('utf-8') for commit in commits]
 
     # Split as bytes, as the output may have some non unicode characters.
     blame_lines = subprocess.check_output(
         ['git', 'blame', '--porcelain', filename]).split(
             os.linesep.encode('utf-8'))
     modified_line_numbers = utils.filter_lines(
-        blame_lines, commit + br' (?P<line>\d+) (\d+)', groups=('line', ))
+        blame_lines, br'(%s) (?P<line>\d+) (\d+)' % '|'.join(commits), groups=('line', ))
 
     return list(map(int, modified_line_numbers))

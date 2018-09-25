@@ -23,7 +23,7 @@ It supports many filetypes, including:
 
 Usage:
     git-lint [-f | --force] [--json] [--last-commit] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--last-commit]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--merge-base]
     git-lint -h | --version
 
 Options:
@@ -33,8 +33,10 @@ Options:
     -t --tracked   Lints only tracked files.
     --json         Prints the result as a json string. Useful to use it in
                    conjunction with other tools.
-    --last-commit  Checks the last checked-out commit. This is mostly useful
-                   when used as: git checkout <revid>; git lint --last-commit.
+    --last-commit  Checks modifications since just prior to the last commit.
+    --merge-base   Checks modifications since the merge-base commit of this branch
+                   with master. Ignored if --last-commit is set. Not supported for 
+                   Mercurial vcs.
 """
 
 from __future__ import unicode_literals
@@ -209,6 +211,8 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
     commit = None
     if arguments['--last-commit']:
         commit = vcs.last_commit()
+    elif arguments['--merge-base']:
+        commit = vcs.merge_base_commit()
 
     if arguments['FILENAME']:
         invalid_filenames = find_invalid_filenames(arguments['FILENAME'],
@@ -246,7 +250,7 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
         for filename, result in executor.map(
                 processfile, [(filename, modified_files[filename])
                               for filename in sorted(modified_files.keys())]):
-
+            
             rel_filename = os.path.relpath(filename)
 
             if not json_output:

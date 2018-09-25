@@ -42,6 +42,11 @@ def last_commit():
         return None
 
 
+def merge_base_commit():
+    """Returns the SHA1 of the merge-base of this branch with master."""
+    raise NotImplementedError
+
+
 def modified_files(root, tracked_only=False, commit=None):
     """Returns a list of files that has been modified since the last commit.
 
