@@ -23,7 +23,7 @@ It supports many filetypes, including:
 
 Usage:
     git-lint [-f | --force] [--json] [--last-commit] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--merge-base]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--no-cache] [--merge-base]
     git-lint -h | --version
 
 Options:
@@ -37,6 +37,7 @@ Options:
     --merge-base   Checks modifications since the merge-base commit of this branch
                    with master. Ignored if --last-commit is set. Not supported for 
                    Mercurial vcs.
+    --no-cache     If set, do not make use of the lint results cache.
 """
 
 from __future__ import unicode_literals
@@ -89,7 +90,7 @@ def find_invalid_filenames(filenames, repository_root):
     return errors
 
 
-def get_config(repo_root):
+def get_config(repo_root, cache_enabled):
     """Gets the configuration file either from the repository or the default."""
     config = os.path.join(os.path.dirname(__file__), 'configs', 'config.yaml')
 
@@ -108,7 +109,7 @@ def get_config(repo_root):
         else:
             yaml_config = yaml.load(content)
 
-    return linters.parse_yaml_config(yaml_config, repo_root)
+    return linters.parse_yaml_config(yaml_config, repo_root, cache_enabled)
 
 
 def format_comment(comment_data):
@@ -240,7 +241,7 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
 
     linter_not_found = False
     files_with_problems = 0
-    gitlint_config = get_config(repository_root)
+    gitlint_config = get_config(repository_root, not arguments['--no-cache'])
     json_result = {}
 
     with futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())\

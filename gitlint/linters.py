@@ -55,7 +55,7 @@ def missing_requirements_command(missing_programs, installation_string,
 
 
 # TODO(skreft): add test case for result already in cache.
-def lint_command(name, program, arguments, filter_regex, filename, lines):
+def lint_command(name, program, arguments, filter_regex, cache_enabled, filename, lines):
     """Executes a lint program and filter the output.
 
     Executes the lint tool 'program' with arguments 'arguments' over the file
@@ -67,13 +67,16 @@ def lint_command(name, program, arguments, filter_regex, filename, lines):
       program: string: lint program.
       arguments: list[string]: extra arguments for the program.
       filter_regex: string: regular expression to filter lines.
+      cache_enabled: bool: whether using cached results is enabled.
       filename: string: filename to lint.
       lines: list[int]|None: list of lines that we want to capture. If None,
         then all lines will be captured.
 
     Returns: dict: a dict with the extracted info from the message.
     """
-    output = utils.get_output_from_cache(name, filename)
+    output = None
+    if cache_enabled: 
+        output = utils.get_output_from_cache(name, filename)
 
     if output is None:
         call_arguments = [program] + arguments + [filename]
@@ -91,7 +94,8 @@ def lint_command(name, program, arguments, filter_regex, filename, lines):
                 }
             }
         output = output.decode('utf-8')
-        utils.save_output_in_cache(name, filename, output)
+        if cache_enabled:
+            utils.save_output_in_cache(name, filename, output)
 
     output_lines = output.split(os.linesep)
 
@@ -128,7 +132,7 @@ def _replace_variables(data, variables):
 
 
 # TODO(skreft): validate data['filter'], ie check that only has valid fields.
-def parse_yaml_config(yaml_config, repo_home):
+def parse_yaml_config(yaml_config, repo_home, cache_enabled):
     """Converts a dictionary (parsed Yaml) to the internal representation."""
     config = collections.defaultdict(list)
 
@@ -150,7 +154,7 @@ def parse_yaml_config(yaml_config, repo_home):
                                      not_found_programs, data['installation'])
         else:
             linter_command = Partial(lint_command, name, command, arguments,
-                                     data['filter'])
+                                     data['filter'], cache_enabled)
         for extension in data['extensions']:
             config[extension].append(linter_command)
 
