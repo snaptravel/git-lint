@@ -16,6 +16,12 @@ indent-string='  '
 
 max-args=6
 
+# https://stackoverflow.com/a/32979955
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed. Python regular
+# expressions are accepted.
+generated-members=query
+
 
 [BASIC]
 
@@ -32,4 +38,4 @@ docstring-min-length=10
 
 notes=FIXME,TODO,XXX
 
-good-names=setUpModule,tearDownModule,app,pool,i,j,k,ex,e,ip,ob,_,__,id
+good-names=setUpModule,tearDownModule,app,pool,i,j,k,ex,e,ip,ob,_,__,id,df
