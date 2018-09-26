@@ -152,8 +152,6 @@ def modified_lines(filename, extra_data, commit=None):
             ['git', 'rev-list', '%s...HEAD' % commit]).strip().split(os.linesep.encode('utf-8'))
     else:
         commits.append(commit)
-    
-    commits = [commit.encode('utf-8') for commit in commits]
 
     # Split as bytes, as the output may have some non unicode characters.
     blame_lines = subprocess.check_output(
