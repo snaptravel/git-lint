@@ -153,10 +153,12 @@ def modified_lines(filename, extra_data, commit=None):
         else:
             commits.append(commit)
 
+    commits = [commit.encode('utf-8') for commit in commits]
+
     # Split as bytes, as the output may have some non unicode characters.
     blame_lines = subprocess.check_output(
-        ['git', 'blame', '--porcelain', filename]).split(os.linesep)
+        ['git', 'blame', '--porcelain', filename]).split(os.linesep.encode('utf-8'))
     modified_line_numbers = utils.filter_lines(
-        blame_lines, br'(%s) (?P<line>\d+) (\d+)' % '|'.join(commits), groups=('line', ))
+        blame_lines, br'(%s) (?P<line>\d+) (\d+)' % b'|'.join(commits), groups=('line', ))
 
     return list(map(int, modified_line_numbers))
