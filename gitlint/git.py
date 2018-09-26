@@ -144,14 +144,14 @@ def modified_lines(filename, extra_data, commit=None):
     if extra_data not in ('M ', ' M', 'MM'):
         return None
 
-    commits = []
-    if commit is None:
-        commits.append('0' * 40)
-    elif commit != last_commit():
-        commits = subprocess.check_output(
-            ['git', 'rev-list', '%s...HEAD' % commit]).strip().split(os.linesep.encode('utf-8'))
-    else:
-        commits.append(commit)
+    commits = ['0' * 40]
+    if commit:
+        if commit != last_commit():
+            commits = subprocess.check_output(
+                ['git', 'rev-list', '%s...HEAD' % commit]).decode(
+                    'utf-8').strip().split(os.linesep.encode('utf-8'))
+        else:
+            commits.append(commit)
 
     # Split as bytes, as the output may have some non unicode characters.
     blame_lines = subprocess.check_output(
