@@ -149,14 +149,13 @@ def modified_lines(filename, extra_data, commit=None):
         if commit != last_commit():
             commits = subprocess.check_output(
                 ['git', 'rev-list', '%s...HEAD' % commit]).decode(
-                    'utf-8').strip().split(os.linesep.encode('utf-8'))
+                    'utf-8').strip().split(os.linesep)
         else:
             commits.append(commit)
 
     # Split as bytes, as the output may have some non unicode characters.
     blame_lines = subprocess.check_output(
-        ['git', 'blame', '--porcelain', filename]).split(
-            os.linesep.encode('utf-8'))
+        ['git', 'blame', '--porcelain', filename]).split(os.linesep)
     modified_line_numbers = utils.filter_lines(
         blame_lines, br'(%s) (?P<line>\d+) (\d+)' % '|'.join(commits), groups=('line', ))
 
