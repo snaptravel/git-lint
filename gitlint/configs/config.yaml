@@ -43,7 +43,7 @@ pylint:
     - .py
   command: pylint
   arguments:
-    - --rcfile={REPO_HOME}/pylintrc
+    - --rcfile={DEFAULT_CONFIGS}/pylintrc
     - --output-format=text
     - >-
       --msg-template={{abspath}}:{{line}}:{{column}}:
