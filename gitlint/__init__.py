@@ -21,8 +21,8 @@ It supports many filetypes, including:
     among others. See https://github.com/sk-/git-lint for the complete list.
 
 Usage:
-    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache]
+    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix] [FILENAME ...]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix]
     git-lint -h | --version
 
 Options:
@@ -42,6 +42,8 @@ Options:
                   
                    last-comit: Checks modifications since just prior to the last commit.
     --no-cache     If set, do not make use of the lint results cache.
+    --fix          If set, run code formatters ('fixers') before linting. Linting will be
+                   applied to changes post-fixing.
 """
 
 from __future__ import unicode_literals
@@ -60,14 +62,15 @@ import docopt
 import termcolor
 import yaml
 
+import gitlint.fixers as fixers
 import gitlint.git as git
 import gitlint.hg as hg
 import gitlint.linters as linters
 from gitlint.version import __VERSION__
 
-ERROR = termcolor.colored('ERROR', 'red', attrs=('bold', ))
-SKIPPED = termcolor.colored('SKIPPED', 'yellow', attrs=('bold', ))
-OK = termcolor.colored('OK', 'green', attrs=('bold', ))
+ERROR = termcolor.colored('ERROR', 'red', attrs=('bold',))
+SKIPPED = termcolor.colored('SKIPPED', 'yellow', attrs=('bold',))
+OK = termcolor.colored('OK', 'green', attrs=('bold',))
 
 
 def find_invalid_filenames(filenames, repository_root):
@@ -86,11 +89,10 @@ def find_invalid_filenames(filenames, repository_root):
                            'repository %s' % (filename, repository_root)))
         if not os.path.exists(filename):
             errors.append((filename,
-                           'Error: File %s does not exist' % (filename, )))
+                           'Error: File %s does not exist' % (filename,)))
         if os.path.isdir(filename):
-            errors.append((filename,
-                           'Error: %s is a directory. Directories are'
-                           ' not yet supported' % (filename, )))
+            errors.append((filename, 'Error: %s is a directory. Directories are'
+                           ' not yet supported' % (filename,)))
 
     return errors
 
@@ -173,8 +175,9 @@ def get_vcs_root():
     return (None, None)
 
 
-def process_file(vcs, commit, force, gitlint_config, file_data):
-    """Lint the file
+def process_file(vcs, commit, force, linter_config, fixer_config, fix,
+                 file_data):
+    """Lint and optionally fix the file.
 
     Returns:
       The results from the linter.
@@ -184,9 +187,11 @@ def process_file(vcs, commit, force, gitlint_config, file_data):
     if force:
         modified_lines = None
     else:
-        modified_lines = vcs.modified_lines(
-            filename, extra_data, commit=commit)
-    result = linters.lint(filename, modified_lines, gitlint_config)
+        modified_lines = vcs.modified_lines(filename, extra_data, commit=commit)
+
+    if fix:
+        fixers.fix(filename, fixer_config)
+    result = linters.lint(filename, modified_lines, linter_config)
     result = result[filename]
 
     return filename, result
@@ -221,7 +226,8 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
     elif mode == 'last-commit':
         commit = vcs.last_commit()
     elif mode != 'local':
-        raise ValueError('Invalid mode. Valid modes are: merge-base, local, or last-commit.')
+        raise ValueError(
+            'Invalid mode. Valid modes are: merge-base, local, or last-commit.')
 
     config = get_config(repository_root)
 
@@ -235,9 +241,7 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
             return 2
 
         changed_files = vcs.modified_files(
-            repository_root,
-            tracked_only=arguments['--tracked'],
-            commit=commit)
+            repository_root, tracked_only=arguments['--tracked'], commit=commit)
         modified_files = {}
         for filename in arguments['FILENAME']:
             normalized_filename = os.path.abspath(filename)
@@ -245,33 +249,37 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
                 normalized_filename)
     else:
         modified_files = vcs.modified_files(
-            repository_root,
-            tracked_only=arguments['--tracked'],
-            commit=commit)
+            repository_root, tracked_only=arguments['--tracked'], commit=commit)
         if config.get('ignore-regex'):
-            regex_list = ['(%s)' % r for r in config.get('ignore-regex').split()]
+            regex_list = [
+                '(%s)' % r for r in config.get('ignore-regex').split()
+            ]
             regex = re.compile('|'.join(regex_list))
-            modified_files = {k:v for k,v in modified_files.items() if not regex.match(k)}
+            modified_files = {
+                k: v for k, v in modified_files.items() if not regex.match(k)
+            }
 
     linter_not_found = False
     files_with_problems = 0
     linter_config = linters.parse_yaml_config(
         config.get('linters', {}), repository_root, not arguments['--no-cache'])
+    fixer_config = fixers.parse_yaml_config(config.get('fixers', {}))
     json_result = {}
 
     with futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())\
             as executor:
         processfile = functools.partial(process_file, vcs, commit,
-                                        arguments['--force'], linter_config)
+                                        arguments['--force'], linter_config,
+                                        fixer_config, arguments['--fix'])
         for filename, result in executor.map(
                 processfile, [(filename, modified_files[filename])
                               for filename in sorted(modified_files.keys())]):
-            
+
             rel_filename = os.path.relpath(filename)
 
             if not json_output:
-                stdout.write('Linting file: %s%s' % (termcolor.colored(
-                    rel_filename, attrs=('bold', )), linesep))
+                stdout.write('Processing file: %s%s' % (termcolor.colored(
+                    rel_filename, attrs=('bold',)), linesep))
 
             output_lines = []
             if result.get('error'):

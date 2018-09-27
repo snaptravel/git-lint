@@ -9,7 +9,7 @@ max-line-length=120
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$|'https?://\S+'$
 
 # Number of spaces of indent required inside a hanging or continued line.
-indent-after-paren=2
+indent-after-paren=4
 
 # String used as indentation unit.
 indent-string='  '

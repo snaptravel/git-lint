@@ -14,28 +14,12 @@
 """Functions for invoking a lint command."""
 
 import collections
-import functools
 import os
 import os.path
 import re
 import string
-import subprocess
 
 import gitlint.utils as utils
-
-
-class Partial(functools.partial):
-    """Wrapper around functools partial to support equality comparisons."""
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and self.args == other.args
-                and self.keywords == other.keywords)
-
-    def __repr__(self):
-        # This method should never be executed, only in failing tests.
-        return (
-            'Partial: func: %s, args: %s, kwargs: %s' %
-            (self.func.__name__, self.args, self.keywords))  # pragma: no cover
 
 
 def missing_requirements_command(missing_programs, installation_string,
@@ -55,7 +39,8 @@ def missing_requirements_command(missing_programs, installation_string,
 
 
 # TODO(skreft): add test case for result already in cache.
-def lint_command(name, program, arguments, filter_regex, cache_enabled, filename, lines):
+def lint_command(name, program, arguments, filter_regex, cache_enabled,
+                 filename, lines):
     """Executes a lint program and filter the output.
 
     Executes the lint tool 'program' with arguments 'arguments' over the file
@@ -74,29 +59,7 @@ def lint_command(name, program, arguments, filter_regex, cache_enabled, filename
 
     Returns: dict: a dict with the extracted info from the message.
     """
-    output = None
-    if cache_enabled: 
-        output = utils.get_output_from_cache(name, filename)
-
-    if output is None:
-        call_arguments = [program] + arguments + [filename]
-        try:
-            output = subprocess.check_output(
-                call_arguments, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as error:
-            output = error.output
-        except OSError:
-            return {
-                filename: {
-                    'error': [('Could not execute "%s".%sMake sure all ' +
-                               'required programs are installed') %
-                              (' '.join(call_arguments), os.linesep)]
-                }
-            }
-        output = output.decode('utf-8')
-        if cache_enabled:
-            utils.save_output_in_cache(name, filename, output)
-
+    output = utils.run(name, program, arguments, cache_enabled, filename)
     output_lines = output.split(os.linesep)
 
     if lines is None:
@@ -150,11 +113,13 @@ def parse_yaml_config(yaml_config, repo_home, cache_enabled):
         not_found_programs = utils.programs_not_in_path([command] +
                                                         requirements)
         if not_found_programs:
-            linter_command = Partial(missing_requirements_command,
-                                     not_found_programs, data['installation'])
+            linter_command = utils.Partial(missing_requirements_command,
+                                           not_found_programs,
+                                           data['installation'])
         else:
-            linter_command = Partial(lint_command, name, command, arguments,
-                                     data['filter'], cache_enabled)
+            linter_command = utils.Partial(lint_command, name, command,
+                                           arguments, data['filter'],
+                                           cache_enabled)
         for extension in data['extensions']:
             config[extension].append(linter_command)
 
