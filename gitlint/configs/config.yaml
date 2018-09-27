@@ -13,6 +13,36 @@ ignore-regex:
   .*snapshots/.*
   .*migrations/.*
 
+fixers:
+  # Python
+  isort:
+    extensions:
+      - .py
+    command: isort
+    filter: >-
+      .*
+    installation: "Run pip install isort."
+
+  yapf:
+    extensions:
+      - .py
+    command: yapf
+    arguments:
+      - --in-place
+      - --style=google
+    installation: "Run pip install yapf."
+
+  # Javascript
+  standard:
+    extensions:
+      - .js
+    command: standard
+    arguments:
+      - --fix
+    installation: >-
+      Visit https://standardjs.com/index.html#install for install instructions.
+
+
 # Suite of linters.
 linters:
   # CSS
