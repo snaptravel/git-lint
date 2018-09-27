@@ -7,114 +7,123 @@
 # using '>-' line folding from YAML. This means that between each line a space
 # will be added.
 
-# CSS
-# Sample output:
-# /path_to/error.css: line 3, col 2, Warning - Duplicate property 'width' found.
-csslint:
-  extensions:
-    - .css
-  command: csslint
-  arguments:
-    - "--ignore=ids,box-model,adjoining-classes,qualified-headings,\
-       unique-headings,zero-units"
-    - --format=compact
-  filter: >-
-    ^{filename}: line (?P<line>{lines}), col (?P<column>\d+)?,
-    (?P<severity>\S+) - (?P<message>.+)
-  installation: >-
-    Go to https://github.com/stubbornella/csslint/wiki/Command-line-interface
-    for installation instructions.
+# Filepaths that match any of these regular expressions will be ignored.
+# Not respected if FILENAME is passed to the git lint CLI. One regex per line.
+ignore-regex:
+  .*snapshots/.*
+  .*migrations/.*
 
-# Javascript
-# Sample output:
-# /path_to/error.js:1:3: Use '===' to compare with ''.
-standard:
-  extensions:
-    - .js
-  command: standard
-  filter: >-
-    {filename}:(?P<line>{lines}):(?P<column>\d+): (?P<message>.+)
-  installation: >-
-    Visit https://standardjs.com/index.html#install for install instructions.
+# Suite of linters.
+linters:
+  # CSS
+  # Sample output:
+  # /path_to/error.css: line 3, col 2, Warning - Duplicate property 'width'
+  # found.
+  csslint:
+    extensions:
+      - .css
+    command: csslint
+    arguments:
+      - "--ignore=ids,box-model,adjoining-classes,qualified-headings,\
+         unique-headings,zero-units"
+      - --format=compact
+    filter: >-
+      ^{filename}: line (?P<line>{lines}), col (?P<column>\d+)?,
+      (?P<severity>\S+) - (?P<message>.+)
+    installation: >-
+      Go to https://github.com/stubbornella/csslint/wiki/Command-line-interface
+      for installation instructions.
 
-# Python
-pylint:
-  extensions:
-    - .py
-  command: pylint
-  arguments:
-    - --rcfile={DEFAULT_CONFIGS}/pylintrc
-    - --output-format=text
-    - >-
-      --msg-template={{abspath}}:{{line}}:{{column}}:
-      [{{category}}:{{symbol}}] {{obj}}: {{msg}}
-    - --reports=n
-  filter: >-
-    ^{filename}:(?P<line>{lines}):((?P<column>\d+):)?
-    \[(?P<severity>.+):(?P<message_id>\S+)\]\s+(:
-    )?(?P<message>.+)$
-  installation: "Run pip install pylint."
+  # Javascript
+  # Sample output:
+  # /path_to/error.js:1:3: Use '===' to compare with ''.
+  standard:
+    extensions:
+      - .js
+    command: standard
+    filter: >-
+      {filename}:(?P<line>{lines}):(?P<column>\d+): (?P<message>.+)
+    installation: >-
+      Visit https://standardjs.com/index.html#install for install instructions.
 
-# JSON
-# Sample output:
-# Expecting property name: line 3 column 5 (char 15)
-json:
-  extensions:
-    - .json
-  command: python
-  arguments:
-    - -m
-    - json.tool
-  # enforce that here comes a colon
-  filter: >-
-    ^(?P<message>[^:]+(?=:
-    line \d+ column \d+)|No JSON object could be decoded)(:
-    line (?P<line>\d+) column (?P<column>\d+).*)?$
-  installation: Nothing else should be required.
+  # Python
+  pylint:
+    extensions:
+      - .py
+    command: pylint
+    arguments:
+      - --rcfile={DEFAULT_CONFIGS}/pylintrc
+      - --output-format=text
+      - >-
+        --msg-template={{abspath}}:{{line}}:{{column}}:
+        [{{category}}:{{symbol}}] {{obj}}: {{msg}}
+      - --reports=n
+    filter: >-
+      ^{filename}:(?P<line>{lines}):((?P<column>\d+):)?
+      \[(?P<severity>.+):(?P<message_id>\S+)\]\s+(:
+      )?(?P<message>.+)$
+    installation: "Run pip install pylint."
 
-# SHELL scripts
-# Sample output
-# /path_to/error.sh: line 3: syntax error: unexpected end of file
-bash:
-  extensions:
-    - .sh
-  command: bash
-  arguments:
-    - "-n"
-  filter: >-
-    {filename}: line (?P<line>{lines}): (?P<message>.+)
-  installation: Please install bash in your system.
+  # JSON
+  # Sample output:
+  # Expecting property name: line 3 column 5 (char 15)
+  json:
+    extensions:
+      - .json
+    command: python
+    arguments:
+      - -m
+      - json.tool
+    # enforce that here comes a colon
+    filter: >-
+      ^(?P<message>[^:]+(?=:
+      line \d+ column \d+)|No JSON object could be decoded)(:
+      line (?P<line>\d+) column (?P<column>\d+).*)?$
+    installation: Nothing else should be required.
 
-# YAML
-yaml:
-  extensions:
-    - .yaml
-    - .yml
-  command: yamllint
-  arguments:
-    - --format
-    - parsable
-    - --config-data
-    - "{{extends: default, rules: {{document-start: disable}}}}"
-  # Matches either:
-  # - syntax error, on any line
-  # - other error, on a modified line only
-  filter: >-
-    ^{filename}:(?P<line>{lines}|\d+(?=:\d+:
-    \[error\] syntax error:)):(?P<column>\d+):
-    \[(?P<severity>\S+)\] (?P<message>.+)$
-  installation: Run pip install yamllint.
+  # SHELL scripts
+  # Sample output
+  # /path_to/error.sh: line 3: syntax error: unexpected end of file
+  bash:
+    extensions:
+      - .sh
+    command: bash
+    arguments:
+      - "-n"
+    filter: >-
+      {filename}: line (?P<line>{lines}): (?P<message>.+)
+    installation: Please install bash in your system.
 
-# HTML
-# Sample output:
-# 1:10: Error: Javascript ...
-html_lint:
-  extensions:
-    - .html
-  command: html_lint.py
-  arguments:
-    - --disable
-    - optional_tag
-  installation: pip install html-linter.
-  filter: >-
-    ^(?P<line>{lines}):(?P<column>\d+): (?P<severity>\S+): (?P<message>.+)
+  # YAML
+  yaml:
+    extensions:
+      - .yaml
+      - .yml
+    command: yamllint
+    arguments:
+      - --format
+      - parsable
+      - --config-data
+      - "{{extends: default, rules: {{document-start: disable}}}}"
+    # Matches either:
+    # - syntax error, on any line
+    # - other error, on a modified line only
+    filter: >-
+      ^{filename}:(?P<line>{lines}|\d+(?=:\d+:
+      \[error\] syntax error:)):(?P<column>\d+):
+      \[(?P<severity>\S+)\] (?P<message>.+)$
+    installation: Run pip install yamllint.
+
+  # HTML
+  # Sample output:
+  # 1:10: Error: Javascript ...
+  html_lint:
+    extensions:
+      - .html
+    command: html_lint.py
+    arguments:
+      - --disable
+      - optional_tag
+    installation: pip install html-linter.
+    filter: >-
+      ^(?P<line>{lines}):(?P<column>\d+): (?P<severity>\S+): (?P<message>.+)

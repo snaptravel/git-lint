@@ -52,6 +52,7 @@ import json
 import multiprocessing
 import os
 import os.path
+import re
 import sys
 from concurrent import futures
 
@@ -94,7 +95,7 @@ def find_invalid_filenames(filenames, repository_root):
     return errors
 
 
-def get_config(repo_root, cache_enabled):
+def get_config(repo_root):
     """Gets the configuration file either from the repository or the default."""
     config = os.path.join(os.path.dirname(__file__), 'configs', 'config.yaml')
 
@@ -113,7 +114,7 @@ def get_config(repo_root, cache_enabled):
         else:
             yaml_config = yaml.load(content)
 
-    return linters.parse_yaml_config(yaml_config, repo_root, cache_enabled)
+    return yaml_config
 
 
 def format_comment(comment_data):
@@ -222,6 +223,8 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
     elif mode != 'local':
         raise ValueError('Invalid mode. Valid modes are: merge-base, local, or last-commit.')
 
+    config = get_config(repository_root)
+
     if arguments['FILENAME']:
         invalid_filenames = find_invalid_filenames(arguments['FILENAME'],
                                                    repository_root)
@@ -245,16 +248,21 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
             repository_root,
             tracked_only=arguments['--tracked'],
             commit=commit)
+        if config.get('ignore-regex'):
+            regex_list = ['(%s)' % r for r in config.get('ignore-regex').split()]
+            regex = re.compile('|'.join(regex_list))
+            modified_files = {k:v for k,v in modified_files.items() if not regex.match(k)}
 
     linter_not_found = False
     files_with_problems = 0
-    gitlint_config = get_config(repository_root, not arguments['--no-cache'])
+    linter_config = linters.parse_yaml_config(
+        config.get('linters', {}), repository_root, not arguments['--no-cache'])
     json_result = {}
 
     with futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())\
             as executor:
         processfile = functools.partial(process_file, vcs, commit,
-                                        arguments['--force'], gitlint_config)
+                                        arguments['--force'], linter_config)
         for filename, result in executor.map(
                 processfile, [(filename, modified_files[filename])
                               for filename in sorted(modified_files.keys())]):
