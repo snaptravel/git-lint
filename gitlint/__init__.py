@@ -263,7 +263,7 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
     files_with_problems = 0
     linter_config = linters.parse_yaml_config(
         config.get('linters', {}), repository_root, not arguments['--no-cache'])
-    fixer_config = fixers.parse_yaml_config(config.get('fixers', {}))
+    fixer_config = fixers.parse_yaml_config(config.get('fixers', {}), repository_root)
     json_result = {}
 
     with futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())\

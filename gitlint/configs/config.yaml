@@ -29,7 +29,7 @@ fixers:
     command: yapf
     arguments:
       - --in-place
-      - --style=google
+      - --style={DEFAULT_CONFIGS}/style.yapf
     installation: "Run pip install yapf."
 
   # Javascript

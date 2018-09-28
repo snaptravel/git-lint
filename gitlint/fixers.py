@@ -22,14 +22,15 @@ def fix_command(name, program, arguments, filename):
     utils.run(name, program, arguments, False, filename)
 
 
-def parse_yaml_config(yaml_config):
+def parse_yaml_config(yaml_config, repo_home):
     """Converts a dictionary (parsed Yaml) to the internal epresentation."""
     config = collections.defaultdict(list)
 
     for name, data in yaml_config.items():
-        command = data['command']
-        requirements = data.get('requirements', [])
-        arguments = data.get('arguments', [])
+        command = utils.replace_variables([data['command']], repo_home)[0]
+        requirements = utils.replace_variables(
+            data.get('requirements', []), repo_home)
+        arguments = utils.replace_variables(data.get('arguments', []), repo_home)
 
         not_found_programs = utils.programs_not_in_path([command] +
                                                         requirements)
