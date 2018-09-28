@@ -25,7 +25,8 @@ generated-members=query|Column|Integer
 disable=
     no-name-in-module,
     import-error,
-    relative-import
+    relative-import,
+    invalid-name
 
 
 [BASIC]
