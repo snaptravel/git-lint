@@ -17,7 +17,6 @@ import collections
 import os
 import os.path
 import re
-import string
 
 import gitlint.utils as utils
 
@@ -88,27 +87,15 @@ def lint_command(name, program, arguments, filter_regex, cache_enabled,
     return {filename: {'comments': result}}
 
 
-def _replace_variables(data, variables):
-    """Replace the format variables in all items of data."""
-    formatter = string.Formatter()
-    return [formatter.vformat(item, [], variables) for item in data]
-
-
 # TODO(skreft): validate data['filter'], ie check that only has valid fields.
 def parse_yaml_config(yaml_config, repo_home, cache_enabled):
     """Converts a dictionary (parsed Yaml) to the internal representation."""
     config = collections.defaultdict(list)
 
-    variables = {
-        'DEFAULT_CONFIGS': os.path.join(os.path.dirname(__file__), 'configs'),
-        'REPO_HOME': repo_home,
-    }
-
     for name, data in yaml_config.items():
-        command = _replace_variables([data['command']], variables)[0]
-        requirements = _replace_variables(
-            data.get('requirements', []), variables)
-        arguments = _replace_variables(data.get('arguments', []), variables)
+        command = utils.replace_variables([data['command']], repo_home)[0]
+        requirements = utils.replace_variables(data.get('requirements', []), repo_home)
+        arguments = utils.replace_variables(data.get('arguments', []), repo_home)
 
         not_found_programs = utils.programs_not_in_path([command] +
                                                         requirements)

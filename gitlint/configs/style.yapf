@@ -1,0 +1,11 @@
+# Configuration for YAPF fixer.
+
+[style]
+
+based_on_style=google
+
+# The number of columns to use for indentation.
+indent_width=2
+
+# The column limit.
+column_limit=120

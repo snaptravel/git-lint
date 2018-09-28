@@ -17,6 +17,7 @@ import functools
 import io
 import os
 import re
+import string
 import subprocess
 
 # This can be just pathlib when 2.7 and 3.4 support is dropped.
@@ -35,6 +36,16 @@ class Partial(functools.partial):
         return (
             'Partial: func: %s, args: %s, kwargs: %s' %
             (self.func.__name__, self.args, self.keywords))  # pragma: no cover
+
+
+def replace_variables(data, repo_home):
+    """Replace the format variables in all items of data."""
+    variables = {
+        'DEFAULT_CONFIGS': os.path.join(os.path.dirname(__file__), 'configs'),
+        'REPO_HOME': repo_home,
+    }
+    formatter = string.Formatter()
+    return [formatter.vformat(item, [], variables) for item in data]
 
 
 def filter_lines(lines, filter_regex, groups=None):
