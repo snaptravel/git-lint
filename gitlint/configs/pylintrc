@@ -22,6 +22,10 @@ max-args=6
 # expressions are accepted.
 generated-members=query|Column|Integer
 
+disable=
+    no-name-in-module,
+    import-error
+
 
 [BASIC]
 
