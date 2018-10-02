@@ -16,11 +16,11 @@ indent-string='  '
 
 max-args=6
 
-# https://stackoverflow.com/a/32979955
-# List of members which are set dynamically and missed by pylint inference
-# system, and so shouldn't trigger E1101 when accessed. Python regular
-# expressions are accepted.
-generated-members=query|Column|Integer
+# https://stackoverflow.com/a/47147809
+# List of class names for which member attributes should not be checked (useful
+# for classes with dynamically set attributes). This supports the use of
+# qualified names.
+ignored-classes=SQLAlchemy|scoped_session
 
 disable=
     no-name-in-module,
