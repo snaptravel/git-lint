@@ -147,9 +147,9 @@ def modified_lines(filename, extra_data, commit=None):
     commits = ['0' * 40]
     if commit:
         if commit != last_commit():
-            commits = subprocess.check_output(
+            commits.extend(subprocess.check_output(
                 ['git', 'rev-list', '%s...HEAD' % commit]).decode(
-                    'utf-8').strip().split(os.linesep)
+                    'utf-8').strip().split(os.linesep))
         else:
             commits.append(commit)
 
