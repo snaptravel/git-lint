@@ -55,8 +55,8 @@ def fix_command(name, program, arguments, dynamic_arguments, fix_line_exp, filen
     for arg in dynamic_arguments:
         if '{MODIFIED_LINES_RANGE_REPEATED_ARG}' in arg and lines:
           pattern = arg.replace('{MODIFIED_LINES_RANGE_REPEATED_ARG}', '%s-%s')
-          for start, end in get_modified_lines_range_tuples(lines, fix_line_exp):
-            all_arguments.append(pattern % (start, end))
+          all_arguments.extend(
+              [pattern % (start, end) for start, end in get_modified_lines_range_tuples(lines, fix_line_exp)])
     utils.run(name, program, all_arguments, False, filename)
 
 
