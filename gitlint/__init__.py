@@ -21,29 +21,34 @@ It supports many filetypes, including:
     among others. See https://github.com/sk-/git-lint for the complete list.
 
 Usage:
-    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix]
+    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix | --fix-all] [--fix-linexp=LINES] [FILENAME ...]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix | --fix-all] [--fix-linexp=LINES]
     git-lint -h | --version
 
 Options:
-    -h             Show the usage patterns.
-    --version      Prints the version number.
-    -f --force     Shows all the lines with problems.
-    -t --tracked   Lints only tracked files in the index.
-    --json         Prints the result as a json string. Useful to use it in
-                   conjunction with other tools.
-    --mode=MODE    [merge-base, local, last-commit] Default is merge-base.
+    -h                  Show the usage patterns.
+    --version           Prints the version number.
+    -f --force          Shows all the lines with problems.
+    -t --tracked        Lints only tracked files in the index.
+    --json              Prints the result as a json string. Useful to use it in
+                        conjunction with other tools.
+    --mode=MODE         [merge-base, local, last-commit] Default is merge-base.
  
-                   merge-base: Checks modifications since the merge-base commit
-                   of this branch with master. Not supported for Mercurial vcs.
+                         merge-base: Checks modifications since the merge-base commit
+                         of this branch with master. Not supported for Mercurial vcs.
                   
-                   local: Checks local modifications (those that have not yet been
-                   committed).
+                         local: Checks local modifications (those that have not yet been
+                         committed).
                   
-                   last-comit: Checks modifications since just prior to the last commit.
-    --no-cache     If set, do not make use of the lint results cache.
-    --fix          If set, run code formatters ('fixers') before linting. Linting will be
-                   applied to changes post-fixing.
+                         last-comit: Checks modifications since just prior to the last commit.
+    --no-cache           If set, do not make use of the lint results cache.
+    --fix                If set, run code formatters ('fixers') before linting. Linting will be applied
+                         to changes post-fixing. Formatters that support formatting specific line
+                         ranges in a file will be passed modified line ranges corresponding to the mode.
+    --fix-linexp=LINES   When --fix is passed, this flag controls the number of lines above and below a
+                         modified line to format. For instance, if line 3 is modified and --fix-linexp=1
+                         then lines 2-4 will be formatted. Defaults to 0. Must be a non-negative integer.
+    --fix-all            Same as fix, but runs formatting on all lines for all formatters.
 """
 
 from __future__ import unicode_literals
@@ -175,8 +180,14 @@ def get_vcs_root():
     return (None, None)
 
 
-def process_file(vcs, commit, force, linter_config, fixer_config, fix,
-                 file_data):
+def get_vcs_modified_lines(vcs, force, filename, extra_file_data, commit):
+    if force:
+        return None
+    return vcs.modified_lines(filename, extra_file_data, commit=commit)
+
+
+
+def process_file(vcs, commit, force, linter_config, fixer_config, fix, fix_all, file_data):
     """Lint and optionally fix the file.
 
     Returns:
@@ -184,14 +195,12 @@ def process_file(vcs, commit, force, linter_config, fixer_config, fix,
     """
     filename, extra_data = file_data
 
-    if force:
-        modified_lines = None
-    else:
-        modified_lines = vcs.modified_lines(filename, extra_data, commit=commit)
-
     if fix:
+        fixers.fix(filename, fixer_config, get_vcs_modified_lines(vcs, force, filename, extra_data, commit))
+    elif fix_all:
         fixers.fix(filename, fixer_config)
-    result = linters.lint(filename, modified_lines, linter_config)
+    
+    result = linters.lint(filename, get_vcs_modified_lines(vcs, force, filename, extra_data, commit), linter_config)
     result = result[filename]
 
     return filename, result
@@ -263,14 +272,14 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
     files_with_problems = 0
     linter_config = linters.parse_yaml_config(
         config.get('linters', {}), repository_root, not arguments['--no-cache'])
-    fixer_config = fixers.parse_yaml_config(config.get('fixers', {}), repository_root)
+    fixer_config = fixers.parse_yaml_config(config.get('fixers', {}), repository_root, arguments['--fix-linexp'])
     json_result = {}
 
     with futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())\
             as executor:
         processfile = functools.partial(process_file, vcs, commit,
                                         arguments['--force'], linter_config,
-                                        fixer_config, arguments['--fix'])
+                                        fixer_config, arguments['--fix'], arguments['--fix-all'])
         for filename, result in executor.map(
                 processfile, [(filename, modified_files[filename])
                               for filename in sorted(modified_files.keys())]):

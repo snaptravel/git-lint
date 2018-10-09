@@ -30,6 +30,9 @@ fixers:
     arguments:
       - --in-place
       - --style={DEFAULT_CONFIGS}/style.yapf
+    # Arguments to be configured at runtime.
+    dynamic_arguments:
+      - --lines={MODIFIED_LINES_RANGE_REPEATED_ARG}
     installation: "Run pip install yapf."
 
   # Javascript
