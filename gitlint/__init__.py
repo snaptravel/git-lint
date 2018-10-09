@@ -21,8 +21,8 @@ It supports many filetypes, including:
     among others. See https://github.com/sk-/git-lint for the complete list.
 
 Usage:
-    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix] [FILENAME ...]
-    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix]
+    git-lint [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix | --fix-all] [FILENAME ...]
+    git-lint [-t | --tracked] [-f | --force] [--json] [--mode=MODE] [--no-cache] [--fix | --fix-all]
     git-lint -h | --version
 
 Options:
@@ -42,8 +42,10 @@ Options:
                   
                    last-comit: Checks modifications since just prior to the last commit.
     --no-cache     If set, do not make use of the lint results cache.
-    --fix          If set, run code formatters ('fixers') before linting. Linting will be
-                   applied to changes post-fixing.
+    --fix          If set, run code formatters ('fixers') before linting. Linting will be applied
+                   to changes post-fixing. Formatters that support formatting specific line
+                   ranges in a file will be passed modified line ranges corresponding to the mode.
+    --fix-all      Same as fix, but runs formatting on all lines for all formatters.
 """
 
 from __future__ import unicode_literals
@@ -175,7 +177,7 @@ def get_vcs_root():
     return (None, None)
 
 
-def process_file(vcs, commit, force, linter_config, fixer_config, fix,
+def process_file(vcs, commit, force, linter_config, fixer_config, fix, fix_all,
                  file_data):
     """Lint and optionally fix the file.
 
@@ -190,6 +192,8 @@ def process_file(vcs, commit, force, linter_config, fixer_config, fix,
         modified_lines = vcs.modified_lines(filename, extra_data, commit=commit)
 
     if fix:
+        fixers.fix(filename, fixer_config, modified_lines)
+    elif fix_all:
         fixers.fix(filename, fixer_config)
     result = linters.lint(filename, modified_lines, linter_config)
     result = result[filename]
@@ -270,7 +274,7 @@ def main(argv, stdout=sys.stdout, stderr=sys.stderr):
             as executor:
         processfile = functools.partial(process_file, vcs, commit,
                                         arguments['--force'], linter_config,
-                                        fixer_config, arguments['--fix'])
+                                        fixer_config, arguments['--fix'], arguments['--fix-all'])
         for filename, result in executor.map(
                 processfile, [(filename, modified_files[filename])
                               for filename in sorted(modified_files.keys())]):
