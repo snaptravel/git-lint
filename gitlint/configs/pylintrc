@@ -26,7 +26,10 @@ disable=
     no-name-in-module,
     import-error,
     relative-import,
-    invalid-name
+    invalid-name,
+    too-many-arguments,
+    too-many-locals,
+    too-many-lines
 
 
 [BASIC]
