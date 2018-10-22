@@ -20,7 +20,7 @@ max-args=6
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=SQLAlchemy,scoped_session
+ignored-classes=SQLAlchemy,scoped_session,Query
 
 disable=
     no-name-in-module,
