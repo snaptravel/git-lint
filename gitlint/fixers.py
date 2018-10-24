@@ -11,7 +11,7 @@ DEFAULT_FIX_LINE_EXPANSION = 0
 
 
 def missing_requirements_command(missing_programs, installation_string,
-                                 filename):
+                                 filename, _):
     """Pseudo-command to be used when requirements are missing."""
     verb = 'is'
     if len(missing_programs) > 1:
