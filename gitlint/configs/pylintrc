@@ -29,7 +29,14 @@ disable=
     invalid-name,
     too-many-arguments,
     too-many-locals,
-    too-many-lines
+    too-many-lines,
+    too-many-instance-attributes,
+    too-few-public-methods,
+    too-many-public-methods,
+    broad-except,
+    no-member,
+    too-many-local-variables,
+    no-self-use
 
 
 [BASIC]
