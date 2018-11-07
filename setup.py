@@ -54,6 +54,8 @@ setup(
         'pyyaml',
         'pathlib2',
         'termcolor',
+        'yapf',
+        'isort',
         # Packages specific to linters. They are optional, but to ease the use
         # we prefer to put them here.
         'docutils',
