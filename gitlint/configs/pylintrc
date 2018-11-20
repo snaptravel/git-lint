@@ -36,7 +36,9 @@ disable=
     broad-except,
     no-member,
     too-many-local-variables,
-    no-self-use
+    no-self-use,
+    too-many-return-statements,
+    too-many-boolean-expressions
 
 
 [BASIC]
