@@ -146,17 +146,3 @@ linters:
       \[error\] syntax error:)):(?P<column>\d+):
       \[(?P<severity>\S+)\] (?P<message>.+)$
     installation: Run pip install yamllint.
-
-  # HTML
-  # Sample output:
-  # 1:10: Error: Javascript ...
-  html_lint:
-    extensions:
-      - .html
-    command: html_lint.py
-    arguments:
-      - --disable
-      - optional_tag
-    installation: pip install html-linter.
-    filter: >-
-      ^(?P<line>{lines}):(?P<column>\d+): (?P<severity>\S+): (?P<message>.+)

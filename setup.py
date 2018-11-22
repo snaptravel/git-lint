@@ -59,7 +59,6 @@ setup(
         # Packages specific to linters. They are optional, but to ease the use
         # we prefer to put them here.
         'docutils',
-        'html-linter',
     ],
     tests_require=TEST_REQUIRES,
     setup_requires=['nose>=1.3'],
