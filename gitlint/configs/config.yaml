@@ -45,6 +45,17 @@ fixers:
     installation: >-
       Visit https://standardjs.com/index.html#install for install instructions.
 
+  # Typescript
+  tslint:
+    extensions:
+      - .ts
+    command: tslint
+    arguments:
+      - -c
+      - "{DEFAULT_CONFIGS}/tslint.json"
+      - --fix
+    installation: "run npm -g install tslint"
+
 
 # Suite of linters.
 linters:
@@ -78,6 +89,20 @@ linters:
       {filename}:(?P<line>{lines}):(?P<column>\d+): (?P<message>.+)
     installation: >-
       Visit https://standardjs.com/index.html#install for install instructions.
+
+  # Typescript
+  # Sample output:
+  # ERROR: models/request.ts:4:1 - Consecutive blank lines are forbidden
+  tslint:
+    extensions:
+      - .ts
+    command: tslint
+    filter: >-
+      ERROR: .*(?P<line>{lines}):(?P<column>\d+) - (?P<message>.+)
+    arguments:
+      - -c
+      - "{DEFAULT_CONFIGS}/tslint.json"
+    installation: "run npm -g install tslint"
 
   # Python
   pylint:
