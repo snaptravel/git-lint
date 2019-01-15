@@ -10,7 +10,8 @@
             "options": ["single", "avoid-escape"]
         },
         "object-literal-sort-keys": false,
-        "no-console": false
+        "no-console": false,
+        "interface-name": [true, "never-prefix"]
     },
     "rulesDirectory": []
 }

@@ -98,7 +98,7 @@ linters:
       - .ts
     command: tslint
     filter: >-
-      ERROR: .*(?P<line>{lines}):(?P<column>\d+) - (?P<message>.+)
+      ERROR: .*:(?P<line>\d+):(?P<column>\d+) - (?P<message>.+)
     arguments:
       - -c
       - "{DEFAULT_CONFIGS}/tslint.json"
