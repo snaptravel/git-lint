@@ -39,7 +39,8 @@ disable=
     no-self-use,
     too-many-return-statements,
     too-many-boolean-expressions,
-    fixme
+    fixme,
+    superfluous-parens
 
 
 [BASIC]
