@@ -76,7 +76,7 @@ def parse_yaml_config(yaml_config, repo_home, fix_line_exp):
                                           not_found_programs,
                                           data['installation'])
         else:
-            arguments = utils.replace_variables(data.get('arguments', []), repo_home)
+            arguments = utils.replace_variables(data.get('arguments', []), repo_home, data.get('config'))
             dynamic_arguments = data.get('dynamic_arguments', [])
             fixer_command = utils.Partial(fix_command, name, command, arguments, dynamic_arguments, fix_line_exp)
         for extension in data['extensions']:

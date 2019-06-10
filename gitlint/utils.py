@@ -38,11 +38,14 @@ class Partial(functools.partial):
             (self.func.__name__, self.args, self.keywords))  # pragma: no cover
 
 
-def replace_variables(data, repo_home):
+def replace_variables(data, repo_home, config_file=None):
     """Replace the format variables in all items of data."""
+    default_path = os.path.join(os.path.dirname(__file__), 'configs')
     variables = {
-        'DEFAULT_CONFIGS': os.path.join(os.path.dirname(__file__), 'configs'),
+        'DEFAULT_CONFIGS': default_path,
         'REPO_HOME': repo_home,
+        'REPO_HOME_FALLBACK_DEFAULT_CONFIGS': repo_home if (
+            config_file and os.path.exists('%s/%s' % (repo_home, config_file))) else default_path
     }
     formatter = string.Formatter()
     return [formatter.vformat(item, [], variables) for item in data]
