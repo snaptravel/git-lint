@@ -45,7 +45,7 @@ def replace_variables(data, repo_home, config_file=None):
         'DEFAULT_CONFIGS': default_path,
         'REPO_HOME': repo_home,
         'REPO_HOME_FALLBACK_DEFAULT_CONFIGS': repo_home if (
-            config_file and os.path.exists('%s/%s' % (repo_home, config_file))) else default_path
+            config_file and os.path.exists(os.path.join(repo_home, config_file))) else default_path
     }
     formatter = string.Formatter()
     return [formatter.vformat(item, [], variables) for item in data]
