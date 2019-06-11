@@ -95,7 +95,7 @@ def parse_yaml_config(yaml_config, repo_home, cache_enabled):
     for name, data in yaml_config.items():
         command = utils.replace_variables([data['command']], repo_home)[0]
         requirements = utils.replace_variables(data.get('requirements', []), repo_home)
-        arguments = utils.replace_variables(data.get('arguments', []), repo_home)
+        arguments = utils.replace_variables(data.get('arguments', []), repo_home, data.get('config'))
 
         not_found_programs = utils.programs_not_in_path([command] +
                                                         requirements)
