@@ -119,7 +119,7 @@ def get_config(repo_root):
         if not content:
             yaml_config = {}
         else:
-            yaml_config = yaml.load(content)
+            yaml_config = yaml.load(content, Loader=yaml.SafeLoader)
 
     return yaml_config
 
