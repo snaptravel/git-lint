@@ -131,8 +131,8 @@ Installation
 
 You can install, upgrade or uninstall git-lint with these commands::
 
-  $ pip install git-lint
-  $ pip install --upgrade git-lint
+  $ pip install git+https://github.com/snaptravel/git-lint.git
+  $ pip install --upgrade git+https://github.com/snaptravel/git-lint.git
   $ pip uninstall git-lint
 
 Configuration
