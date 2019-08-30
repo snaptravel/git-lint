@@ -43,9 +43,9 @@ fixers:
     command: eslint
     arguments:
       - -c
-      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintrc.js"
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/eslintrc.js"
       - --ignore-path
-      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintignore"
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/eslintignore"
       - -- fix
     installation: >-
       Visit https://eslint.org/docs/user-guide/command-line-interface for install instructions.
@@ -93,9 +93,9 @@ linters:
     command: eslint
     arguments:
       - -c
-      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintrc.js"
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/eslintrc.js"
       - --ignore-path
-      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintignore"
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/eslintignore"
     filter: >-
       {filename}:(?P<line>{lines}):(?P<column>\d+): (?P<message>.+)
     installation: >-
