@@ -40,11 +40,14 @@ fixers:
   standard:
     extensions:
       - .js
-    command: standard
+    command: eslint
     arguments:
-      - --fix
+      - -c
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintrc.js"
+      - --ignore-path
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintignore"
     installation: >-
-      Visit https://standardjs.com/index.html#install for install instructions.
+      Visit https://eslint.org/docs/user-guide/command-line-interface for install instructions.
 
   # Typescript
   tslint:
