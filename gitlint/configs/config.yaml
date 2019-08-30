@@ -37,7 +37,7 @@ fixers:
     installation: "Run pip install yapf."
 
   # Javascript
-  standard:
+  eslint:
     extensions:
       - .js
     command: eslint
@@ -46,6 +46,7 @@ fixers:
       - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintrc.js"
       - --ignore-path
       - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintignore"
+      - -- fix
     installation: >-
       Visit https://eslint.org/docs/user-guide/command-line-interface for install instructions.
 
@@ -86,14 +87,19 @@ linters:
   # Javascript
   # Sample output:
   # /path_to/error.js:1:3: Use '===' to compare with ''.
-  standard:
+  eslint:
     extensions:
       - .js
-    command: standard
+    command: eslint
+    arguments:
+      - -c
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintrc.js"
+      - --ignore-path
+      - "{REPO_HOME_FALLBACK_DEFAULT_CONFIGS}/.eslintignore"
     filter: >-
       {filename}:(?P<line>{lines}):(?P<column>\d+): (?P<message>.+)
     installation: >-
-      Visit https://standardjs.com/index.html#install for install instructions.
+      Visit https://eslint.org/docs/user-guide/command-line-interface for install instructions.
 
   # Typescript
   # Sample output:
