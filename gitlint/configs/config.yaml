@@ -108,6 +108,7 @@ linters:
   tslint:
     extensions:
       - .ts
+      - .tsx
     command: tslint
     config: tslint.json
     filter: >-
