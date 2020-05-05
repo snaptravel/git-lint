@@ -41,7 +41,8 @@ disable=
     too-many-boolean-expressions,
     fixme,
     superfluous-parens,
-    missing-docstring
+    missing-docstring,
+    protected-access
 
 
 [BASIC]
